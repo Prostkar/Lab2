@@ -1,0 +1,45 @@
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Lab2.Task3;
+
+namespace Lab2.Task3.Tests
+{
+    [TestClass]
+    public class ProgramTests
+    {
+        // Контрольний приклад 1
+        // Масив: {3, -7, 0, 2, 5, 0, -9, 4, 2}
+        [TestMethod]
+        public void Example1_ZerosAndProduct()
+        {
+            var p = new Program(
+                new[] { 3, -7, 0, 2, 5, 0, -9, 4, 2 }
+            );
+
+            Assert.AreEqual(2, p.CountZeros());
+            Assert.AreEqual(6, p.IndexOfMaxAbs());
+
+            Assert.IsTrue(
+                p.TryProductAfterMaxAbs(out long product)
+            );
+
+            Assert.AreEqual(8L, product);
+        }
+
+        // Контрольний приклад 2
+        // Максимальний за модулем елемент — останній
+        [TestMethod]
+        public void Example2_MaxAbsIsLast()
+        {
+            var p = new Program(
+                new[] { 1, 0, -5 }
+            );
+
+            Assert.AreEqual(1, p.CountZeros());
+
+            Assert.IsFalse(
+                p.TryProductAfterMaxAbs(out _)
+            );
+        }
+    }
+}
