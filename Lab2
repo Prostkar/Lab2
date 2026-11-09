@@ -1,0 +1,482 @@
+using System;
+using System.IO;
+using System.Text;
+using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
+
+
+namespace Lab2
+{
+    public static class Menu
+    {
+        private static void Main(string[] args) => Run(args);
+
+        public static void Run(string[] args)
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.InputEncoding = Encoding.UTF8;
+
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("========== LAB2 ==========");
+                Console.WriteLine("1 - Назва місяця за номером");
+                Console.WriteLine("2 - Таблиця значень математичної функції");
+                Console.WriteLine("3 - Одновимірний масив");
+                Console.WriteLine("4 - Двовимірний масив (матриця)");
+                Console.WriteLine("0 - Вихід");
+                Console.Write("Ваш вибір: ");
+                string? choice = Console.ReadLine();
+                if (choice == "0" || choice == null) return;
+
+                Console.Clear();
+                string originalDirectory = Environment.CurrentDirectory;
+                try
+                {
+                    switch (choice)
+                    {
+                        case "1":
+                            Environment.CurrentDirectory = AppContext.BaseDirectory;
+                            global::Lab2.Task1.Program.Run();
+                            break;
+                        case "2":
+                            Environment.CurrentDirectory = AppContext.BaseDirectory;
+                            global::Lab2.Task2.Program.Run();
+                            break;
+                        case "3":
+                            Environment.CurrentDirectory = AppContext.BaseDirectory;
+                            global::Lab2.Task3.Program.Run();
+                            break;
+                        case "4":
+                            Environment.CurrentDirectory = AppContext.BaseDirectory;
+                            global::Lab2.Task5.Program.Run();
+                            break;
+                        default:
+                            Console.WriteLine("Невідомий пункт меню.");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Помилка під час виконання: " + ex.Message);
+                }
+
+                Environment.CurrentDirectory = originalDirectory;
+                Console.WriteLine();
+                Console.WriteLine("Натисніть Enter, щоб повернутися до меню...");
+                Console.ReadLine();
+            }
+        }
+    }
+}
+
+
+// ===================== ConsoleApp1 =====================
+namespace Lab2.Task1
+{
+
+    class Program
+    {
+        static string GetMonthName(int n)
+        {
+            switch (n)
+            {
+                case 1: return "січень";
+                case 2: return "лютий";
+                case 3: return "березень";
+                case 4: return "квітень";
+                case 5: return "травень";
+                case 6: return "червень";
+                case 7: return "липень";
+                case 8: return "серпень";
+                case 9: return "вересень";
+                case 10: return "жовтень";
+                case 11: return "листопад";
+                case 12: return "грудень";
+                default: return null;
+            }
+        }
+
+        // Запитує, чи повторити програму
+        static bool AskRepeat()
+        {
+            while (true)
+            {
+                Console.Write("\nПовторити? (т - так, н - ні): ");
+                string s = (Console.ReadLine() ?? "").Trim().ToLower();
+                if (s == "т" || s == "y" || s == "так") return true;
+                if (s == "н" || s == "n" || s == "ні") return false;
+                Console.WriteLine("Введіть 'т' або 'н'.");
+            }
+        }
+
+        public static void Run()
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.InputEncoding = Encoding.UTF8;
+
+            do
+            {
+                Console.Write("Введіть порядковий номер місяця (1-12): ");
+
+                if (!int.TryParse(Console.ReadLine(), out int n))
+                {
+                    Console.WriteLine("Помилка: потрібно ввести ціле число.");
+                }
+                else
+                {
+                    string name = GetMonthName(n);
+                    if (name == null)
+                        Console.WriteLine("Помилка: номер місяця має бути в діапазоні від 1 до 12.");
+                    else
+                        Console.WriteLine($"Місяць №{n} - {name}");
+                }
+            } while (AskRepeat());
+        }
+    }
+}
+
+// ===================== ConsoleApp2 =====================
+namespace Lab2.Task2
+{
+
+    class Program
+    {
+        // Повертає true, якщо функцію можна обчислити; результат у y
+        static bool TryCalc(double x, out double y)
+        {
+            y = double.NaN;
+
+            // tg(x) не існує, коли cos(x) = 0 (x = pi/2 + pi*k)
+            if (Math.Abs(Math.Cos(x)) < 1e-9)
+                return false;
+
+            double under = Math.Tan(x) + 13;
+
+            // корінь парного степеня з від'ємного числа не існує
+            if (under < 0)
+                return false;
+
+            y = Math.Pow(under, 0.25);
+            return true;
+        }
+
+        static void PrintRow(double x, double y, bool ok)
+        {
+            if (ok)
+                Console.WriteLine("| {0,10:F5} | {1,14:F6} |", x, y);
+            else
+                Console.WriteLine("| {0,10:F5} | {1,14} |", x, "не існує");
+        }
+
+        public static void Run()
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+
+            double a = 0, b = Math.PI, dx = Math.PI / 20;
+            const double eps = 1e-9;
+            double y;
+            bool ok;
+
+            Console.WriteLine("Результати обчислення функції y = (tg(x) + 13)^(1/4) на проміжку [0, pi] з кроком pi/20.");
+
+            // ---- Спосіб 1: цикл з передумовою while ----
+            Console.WriteLine("\n--- Цикл з передумовою (while) ---");
+            Console.WriteLine("|     x      |     y = f(x)   |");
+            double x = a;
+            while (x <= b + eps)
+            {
+                ok = TryCalc(x, out y);
+                PrintRow(x, y, ok);
+                x += dx;
+            }
+
+            // ---- Спосіб 2: цикл з післяумовою do...while ----
+            Console.WriteLine("\n--- Цикл з післяумовою (do...while) ---");
+            Console.WriteLine("|     x      |     y = f(x)   |");
+            x = a;
+            do
+            {
+                ok = TryCalc(x, out y);
+                PrintRow(x, y, ok);
+                x += dx;
+            } while (x <= b + eps);
+
+            Console.WriteLine("\nНатисніть будь-яку клавішу...");
+            Console.ReadKey();
+        }
+    }
+}
+
+// ===================== ConsoleApp3 =====================
+namespace Lab2.Task3
+{
+    public class Program
+    {
+        private readonly int[] _data;
+
+        public Program(int[] data)
+        {
+            _data = data ?? throw new ArgumentNullException(nameof(data));
+        }
+
+        public int[] Data => _data;
+
+        // Заповнення масиву псевдовипадковими числами з відрізка [-100; 100]
+        public static Program CreateRandom(int n)
+        {
+            Random rnd = new Random();
+            int[] arr = new int[n];
+            for (int i = 0; i < n; i++)
+                arr[i] = rnd.Next(-100, 101); // верхня межа виключається, тому 101
+            return new Program(arr);
+        }
+
+        // 1) Кількість нульових елементів
+        public int CountZeros()
+        {
+            int count = 0;
+            foreach (int x in _data)
+            {
+                if (x == 0) count++;
+            }
+            return count;
+        }
+
+        // Індекс першого максимального за модулем елемента
+        public int IndexOfMaxAbs()
+        {
+            if (_data.Length == 0) return -1;
+
+            int idx = 0;
+            for (int i = 1; i < _data.Length; i++)
+            {
+                if (Math.Abs(_data[i]) > Math.Abs(_data[idx]))
+                {
+                    idx = i;
+                }
+            }
+            return idx;
+        }
+
+        // 2) Добуток елементів, розташованих після максимального за модулем елемента
+        public bool TryProductAfterMaxAbs(out long product)
+        {
+            product = 1;
+            int idx = IndexOfMaxAbs();
+
+            if (idx == -1 || idx >= _data.Length - 1)
+                return false;
+
+            for (int i = idx + 1; i < _data.Length; i++)
+            {
+                product *= _data[i];
+            }
+            return true;
+        }
+
+        public void Print()
+        {
+            foreach (int x in _data)
+            {
+                Console.Write(x + "\t");
+            }
+            Console.WriteLine();
+        }
+
+        // Захист від некоректного введення цілого числа
+        static int ReadInt(string message, int min, int max)
+        {
+            int value;
+            while (true)
+            {
+                Console.Write(message);
+                if (int.TryParse(Console.ReadLine(), out value) && value >= min && value <= max)
+                    return value;
+                Console.WriteLine($"Некоректне значення! Введіть ціле число від {min} до {max}.");
+            }
+        }
+
+        static void Solve(Program p)
+        {
+            Console.WriteLine("\nМасив:");
+            p.Print();
+
+            Console.WriteLine("1) Кількість нульових елементів: " + p.CountZeros());
+
+            int idx = p.IndexOfMaxAbs();
+            if (idx != -1)
+            {
+                Console.WriteLine($"Максимальний за модулем елемент: {p.Data[idx]} (індекс {idx})");
+
+                if (p.TryProductAfterMaxAbs(out long prod))
+                    Console.WriteLine("2) Добуток елементів після максимального за модулем: " + prod);
+                else
+                    Console.WriteLine("2) Після максимального за модулем елемента немає елементів.");
+            }
+        }
+
+        // Запитує, чи повторити програму
+        static bool AskRepeat()
+        {
+            while (true)
+            {
+                Console.Write("\nПовторити? (т - так, н - ні): ");
+                string s = (Console.ReadLine() ?? "").Trim().ToLower();
+                if (s == "т" || s == "y" || s == "так") return true;
+                if (s == "н" || s == "n" || s == "ні") return false;
+                Console.WriteLine("Введіть 'т' або 'н'.");
+            }
+        }
+
+        public static void Run()
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.InputEncoding = Encoding.UTF8;
+
+            do
+            {
+                Console.WriteLine("Оберіть спосіб заповнення масиву:");
+                Console.WriteLine("  1 - ввести з клавіатури (спосіб А)");
+                Console.WriteLine("  2 - згенерувати випадково з відрізка [-100; 100] (спосіб Б)");
+                int mode = ReadInt("Ваш вибір (1 або 2): ", 1, 2);
+
+                int n = ReadInt("Введіть кількість елементів масиву n (1-1000): ", 1, 1000);
+
+                if (mode == 1)
+                {
+                    // ---- Спосіб А: масив вводиться з клавіатури ----
+                    Console.WriteLine("\n=== Спосіб А: введення з клавіатури ===");
+                    int[] arr = new int[n];
+                    for (int i = 0; i < n; i++)
+                    {
+                        arr[i] = ReadInt($"Введіть елемент a[{i}]: ", int.MinValue, int.MaxValue);
+                    }
+                    Solve(new Program(arr));
+                }
+                else
+                {
+                    // ---- Спосіб Б: генератор випадкових чисел [-100; 100] ----
+                    Console.WriteLine("\n=== Спосіб Б: генератор випадкових чисел [-100; 100] ===");
+                    Solve(CreateRandom(n));
+                }
+
+            } while (AskRepeat());
+        }
+    }
+}
+
+// ===================== ConsoleApp4 =====================
+namespace Lab2.Task5
+{
+    class Program
+    {
+        // Захист від некоректного введення цілого числа
+        static int ReadInt(string message, int min, int max)
+        {
+            int value;
+            while (true)
+            {
+                Console.Write(message);
+                if (int.TryParse(Console.ReadLine(), out value) && value >= min && value <= max)
+                    return value;
+                Console.WriteLine($"Некоректне значення! Введіть ціле число від {min} до {max}.");
+            }
+        }
+
+        // Введення матриці з клавіатури
+        static int[,] ReadMatrix(int n)
+        {
+            int[,] a = new int[n, n];
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    a[i, j] = ReadInt($"Введіть елемент a[{i},{j}] (від -10000 до 10000): ", -10000, 10000);
+            return a;
+        }
+
+        // Заповнення матриці псевдовипадковими числами з відрізка [-100; 100]
+        static int[,] RandomMatrix(int n)
+        {
+            Random rnd = new Random();
+            int[,] a = new int[n, n];
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    a[i, j] = rnd.Next(-100, 101);
+            return a;
+        }
+
+        // Перетворення: бічна діагональ (i + j = n - 1) -> 0, інші елементи -> квадрат
+        static void Transform(int[,] a)
+        {
+            int n = a.GetLength(0);
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                {
+                    if (i + j == n - 1)
+                        a[i, j] = 0;
+                    else
+                        a[i, j] = a[i, j] * a[i, j];
+                }
+        }
+
+        static void Print(int[,] a, string title)
+        {
+            Console.WriteLine(title);
+            int n = a.GetLength(0);
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                    Console.Write(a[i, j].ToString().PadLeft(8));
+                Console.WriteLine();
+            }
+        }
+
+        static void Solve(int[,] a)
+        {
+            Print(a, "\nПочаткова матриця:");
+            Transform(a);
+            Print(a, "\nМатриця після перетворення:");
+        }
+
+        // Запитує, чи повторити програму
+        static bool AskRepeat()
+        {
+            while (true)
+            {
+                Console.Write("\nПовторити? (т - так, н - ні): ");
+                string s = (Console.ReadLine() ?? "").Trim().ToLower();
+                if (s == "т" || s == "y" || s == "так") return true;
+                if (s == "н" || s == "n" || s == "ні") return false;
+                Console.WriteLine("Введіть 'т' або 'н'.");
+            }
+        }
+
+        public static void Run()
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.InputEncoding = Encoding.UTF8;
+
+            do
+            {
+                Console.WriteLine("Оберіть спосіб заповнення матриці:");
+                Console.WriteLine("  1 - ввести з клавіатури");
+                Console.WriteLine("  2 - згенерувати випадково з відрізка [-100; 100]");
+                int mode = ReadInt("Ваш вибір (1 або 2): ", 1, 2);
+
+                int n = ReadInt("Введіть розмірність квадратної матриці n (1-10): ", 1, 10);
+
+                if (mode == 1)
+                {
+                    Console.WriteLine("\n=== Введення з клавіатури ===");
+                    Solve(ReadMatrix(n));
+                }
+                else
+                {
+                    Console.WriteLine("\n=== Генератор псевдовипадкових чисел [-100; 100] ===");
+                    Solve(RandomMatrix(n));
+                }
+            } while (AskRepeat());
+        }
+    }
+}
